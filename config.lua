@@ -141,6 +141,16 @@ formatters.setup {
       "markdown",
     },
   },
+  {
+    exe = "eslint_d",
+    filetypes = {
+      "javascriptreact",
+      "javascript",
+      "typescriptreact",
+      "typescript",
+      "vue",
+    },
+  },
 }
 
 -- ESLint
