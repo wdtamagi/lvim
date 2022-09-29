@@ -19,6 +19,8 @@ lvim.colorscheme = "onedarker"
 lvim.leader = "space"
 -- add your own keymapping
 lvim.keys.normal_mode["<C-s>"] = ":w<cr>"
+-- Toggle last buffer
+lvim.keys.normal_mode["<C-e>"] = "<C-^>"
 -- unmap a default keymapping
 -- vim.keymap.del("n", "<C-Up>")
 -- override a default keymapping
@@ -125,11 +127,35 @@ lvim.builtin.treesitter.highlight.enabled = true
 --   },
 -- }
 
+-- Prettier configuration
 local formatters = require "lvim.lsp.null-ls.formatters"
 formatters.setup {
-  { command = "prettier",
-    filetypes = { "typescript", "typescriptreact", "javascript", "javascriptreact" },
-  }
+  {
+    exe = "prettierd",
+    filetypes = {
+      "javascriptreact",
+      "javascript",
+      "typescriptreact",
+      "typescript",
+      "json",
+      "markdown",
+    },
+  },
+}
+
+-- ESLint
+local linters = require "lvim.lsp.null-ls.linters"
+linters.setup {
+  {
+    exe = "eslint_d",
+    filetypes = {
+      "javascriptreact",
+      "javascript",
+      "typescriptreact",
+      "typescript",
+      "vue",
+    },
+  },
 }
 
 -- -- set additional linters
@@ -149,14 +175,6 @@ formatters.setup {
 --     filetypes = { "javascript", "python" },
 --   },
 -- }
-
-local linters = require "lvim.lsp.null-ls.linters"
-linters.setup {
-  {
-    command = "eslint",
-    filetypes = { "typescript", "typescriptreact", "javascript", "javascriptreact" },
-  }
-}
 
 -- Additional Plugins
 -- lvim.plugins = {
@@ -239,9 +257,43 @@ lvim.plugins = {
     -- end
   },
   { 'mg979/vim-visual-multi' },
+  {
+    "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
+    config = function()
+      require("lsp_lines").setup()
+      vim.diagnostic.config({
+        virtual_text = false,
+      })
+    end,
+  },
+  {
+    "ray-x/lsp_signature.nvim",
+    event = "BufRead",
+    config = function() require "lsp_signature".on_attach() end,
+  },
+  {
+    "tpope/vim-fugitive",
+    cmd = {
+      "G",
+      "Git",
+      "Gdiffsplit",
+      "Gread",
+      "Gwrite",
+      "Ggrep",
+      "GMove",
+      "GDelete",
+      "GBrowse",
+      "GRemove",
+      "GRename",
+      "Glgrep",
+      "Gedit"
+    },
+    ft = { "fugitive" }
+  },
 }
 
 lvim.builtin.treesitter.rainbow.enable = true
+vim.opt.wrap = true
 
 -- Autocommands (https://neovim.io/doc/user/autocmd.html)
 -- vim.api.nvim_create_autocmd("BufEnter", {
