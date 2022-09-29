@@ -127,7 +127,7 @@ lvim.builtin.treesitter.highlight.enabled = true
 --   },
 -- }
 
--- Prettier configuration
+-- Formatter
 local formatters = require "lvim.lsp.null-ls.formatters"
 formatters.setup {
   {
@@ -148,12 +148,13 @@ formatters.setup {
       "javascript",
       "typescriptreact",
       "typescript",
-      "vue",
+      "json",
+      "markdown",
     },
   },
 }
 
--- ESLint
+-- Linter
 local linters = require "lvim.lsp.null-ls.linters"
 linters.setup {
   {
@@ -163,7 +164,8 @@ linters.setup {
       "javascript",
       "typescriptreact",
       "typescript",
-      "vue",
+      "json",
+      "markdown",
     },
   },
 }
