@@ -201,23 +201,26 @@ lvim.plugins = {
     "phaazon/hop.nvim",
     branch = "v2",
     event = "BufRead",
-    config = function() require("hop").setup()
-      vim.api.nvim_set_keymap("", "s", "<cmd>HopChar2<cr>", { silent = true });
-      vim.api.nvim_set_keymap("", "S", "<cmd>HopWord<cr>", { silent = true });
-      vim.api.nvim_set_keymap("", "l", "<cmd>HopLine<cr>", { silent = true });
-      vim.api.nvim_set_keymap('', 'f',
-        "<cmd>lua require'hop'.hint_char1({ direction = require'hop.hint'.HintDirection.AFTER_CURSOR, current_line_only = true })<cr>"
-        , {});
-      vim.api.nvim_set_keymap('', 'F',
-        "<cmd>lua require'hop'.hint_char1({ direction = require'hop.hint'.HintDirection.BEFORE_CURSOR, current_line_only = true })<cr>"
-        , {});
-      vim.api.nvim_set_keymap('', 't',
-        "<cmd>lua require'hop'.hint_char1({ direction = require'hop.hint'.HintDirection.AFTER_CURSOR, current_line_only = true, hint_offset = -1 })<cr>"
-        , {});
-      vim.api.nvim_set_keymap('', 'T',
-        "<cmd>lua require'hop'.hint_char1({ direction = require'hop.hint'.HintDirection.BEFORE_CURSOR, current_line_only = true, hint_offset = 1 })<cr>"
-        , {});
-    end,
+    config = function()
+      require("hop").setup {
+        keys = 'nterasoihdfmul';
+        vim.api.nvim_set_keymap("", "s", "<cmd>HopChar2<cr>", { silent = true });
+        vim.api.nvim_set_keymap("", "S", "<cmd>HopWord<cr>", { silent = true });
+        vim.api.nvim_set_keymap("", "l", "<cmd>HopLine<cr>", { silent = true });
+        vim.api.nvim_set_keymap('', 'f',
+          "<cmd>lua require'hop'.hint_char1({ direction = require'hop.hint'.HintDirection.AFTER_CURSOR, current_line_only = true })<cr>"
+          , {});
+        vim.api.nvim_set_keymap('', 'F',
+          "<cmd>lua require'hop'.hint_char1({ direction = require'hop.hint'.HintDirection.BEFORE_CURSOR, current_line_only = true })<cr>"
+          , {});
+        vim.api.nvim_set_keymap('', 't',
+          "<cmd>lua require'hop'.hint_char1({ direction = require'hop.hint'.HintDirection.AFTER_CURSOR, current_line_only = true, hint_offset = -1 })<cr>"
+          , {});
+        vim.api.nvim_set_keymap('', 'T',
+          "<cmd>lua require'hop'.hint_char1({ direction = require'hop.hint'.HintDirection.BEFORE_CURSOR, current_line_only = true, hint_offset = 1 })<cr>"
+          , {});
+      }
+    end
   },
   {
     "windwp/nvim-ts-autotag",
@@ -306,6 +309,17 @@ lvim.plugins = {
 
 lvim.builtin.treesitter.rainbow.enable = true
 vim.opt.wrap = true
+
+-- Fugitive keybindings
+lvim.builtin.which_key.mappings["g"] = {
+  name = "Git",
+  s = { "<cmd>:G<cr>", "Status" },
+  c = { "<cmd>:Git commit<cr>", "Commit" },
+  p = { "<cmd>:Git push<cr>", "Push" },
+  f = { "<cmd>:Git fetch<cr>", "Fetch" },
+  t = { "<cmd>:diffget //2 | diffupdate<cr>", "Diff get left" },
+  n = { "<cmd>:diffget //3 | diffupdate<cr>", "Diff get right" },
+}
 
 -- Autocommands (https://neovim.io/doc/user/autocmd.html)
 -- vim.api.nvim_create_autocmd("BufEnter", {
