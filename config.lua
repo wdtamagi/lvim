@@ -251,11 +251,6 @@ lvim.plugins = {
     end
   },
   {
-    "ray-x/lsp_signature.nvim",
-    event = "BufRead",
-    config = function() require "lsp_signature".on_attach() end,
-  },
-  {
     "folke/todo-comments.nvim",
     event = "BufRead",
     config = function()
@@ -273,18 +268,15 @@ lvim.plugins = {
   },
   { 'mg979/vim-visual-multi' },
   {
-    "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
-    config = function()
-      require("lsp_lines").setup()
-      vim.diagnostic.config({
-        virtual_text = false,
-      })
-    end,
-  },
-  {
     "ray-x/lsp_signature.nvim",
     event = "BufRead",
-    config = function() require "lsp_signature".on_attach() end,
+    config = function() require "lsp_signature".on_attach({
+        bind = true,
+        handler_opts = {
+          border = "rounded"
+        }
+      })
+    end,
   },
   {
     "tpope/vim-fugitive",
