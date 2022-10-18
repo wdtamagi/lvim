@@ -1,5 +1,5 @@
 --[[
-lvim is the global options object
+
 
 Linters should be
 filled in as strings with either
@@ -11,7 +11,8 @@ an executable
 -- general
 lvim.log.level = "warn"
 lvim.format_on_save = true
-lvim.colorscheme = "onedarker"
+lvim.colorscheme = "tokyonight"
+lvim.builtin.breadcrumbs.active = true
 -- to disable icons and use a minimalist setup, uncomment the following
 -- lvim.use_icons = false
 
@@ -222,6 +223,7 @@ lvim.plugins = {
       }
     end
   },
+
   {
     "windwp/nvim-ts-autotag",
     event = "InsertEnter",
@@ -229,9 +231,11 @@ lvim.plugins = {
       require("nvim-ts-autotag").setup()
     end,
   },
+
   {
     "p00f/nvim-ts-rainbow",
   },
+
   {
     "rmagatti/goto-preview",
     config = function()
@@ -250,6 +254,7 @@ lvim.plugins = {
       }
     end
   },
+
   {
     "folke/todo-comments.nvim",
     event = "BufRead",
@@ -257,16 +262,9 @@ lvim.plugins = {
       require("todo-comments").setup()
     end,
   },
-  { "tpope/vim-repeat" },
-  {
-    "tpope/vim-surround",
-    keys = { "c", "d", "y" }
-    -- make sure to change the value of `timeoutlen` if it's not triggering correctly, see https://github.com/tpope/vim-surround/issues/117
-    -- setup = function()
-    --  vim.o.timeoutlen = 500
-    -- end
-  },
+
   { 'mg979/vim-visual-multi' },
+
   {
     "ray-x/lsp_signature.nvim",
     event = "BufRead",
@@ -278,6 +276,7 @@ lvim.plugins = {
       })
     end,
   },
+
   {
     "tpope/vim-fugitive",
     cmd = {
@@ -297,7 +296,58 @@ lvim.plugins = {
     },
     ft = { "fugitive" }
   },
+
+  {
+    "sindrets/diffview.nvim",
+    event = "BufRead",
+  },
+
+  {
+    "f-person/git-blame.nvim",
+    event = "BufRead",
+    config = function()
+      vim.cmd "highlight default link gitblame SpecialComment"
+      vim.g.gitblame_enabled = 0
+    end,
+  },
+
+  {
+    "tpope/vim-surround",
+
+    -- make sure to change the value of `timeoutlen` if it's not triggering correctly, see https://github.com/tpope/vim-surround/issues/117
+    -- setup = function()
+    --  vim.o.timeoutlen = 500
+    -- end
+  },
+
+  { "tpope/vim-repeat" },
+
+  {
+    "andymass/vim-matchup",
+    event = "CursorMoved",
+    config = function()
+      vim.g.matchup_matchparen_offscreen = { method = "popup" }
+    end,
+  },
+
+  { "zbirenbaum/copilot.lua",
+    event = { "VimEnter" },
+    config = function()
+      vim.defer_fn(function()
+        require("copilot").setup {
+          plugin_manager_path = get_runtime_dir() .. "/site/pack/packer",
+        }
+      end, 100)
+    end,
+  },
+
+  { "zbirenbaum/copilot-cmp",
+    after = { "copilot.lua", "nvim-cmp" },
+  },
 }
+
+lvim.builtin.cmp.formatting.source_names["copilot"] = "(Copilot)"
+table.insert(lvim.builtin.cmp.sources, 1, { name = "copilot" })
 
 lvim.builtin.treesitter.rainbow.enable = true
 vim.opt.wrap = true
