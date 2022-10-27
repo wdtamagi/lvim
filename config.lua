@@ -61,7 +61,6 @@ lvim.keys.normal_mode["<C-e>"] = "<C-^>"
 -- After changing plugin config exit and reopen LunarVim, Run :PackerInstall :PackerCompile
 lvim.builtin.alpha.active = true
 lvim.builtin.alpha.mode = "dashboard"
-lvim.builtin.notify.active = true
 lvim.builtin.terminal.active = true
 lvim.builtin.nvimtree.setup.view.side = "left"
 lvim.builtin.nvimtree.setup.renderer.icons.show.git = false
@@ -263,8 +262,6 @@ lvim.plugins = {
     end,
   },
 
-  { 'mg979/vim-visual-multi' },
-
   {
     "ray-x/lsp_signature.nvim",
     event = "BufRead",
@@ -298,11 +295,6 @@ lvim.plugins = {
   },
 
   {
-    "sindrets/diffview.nvim",
-    event = "BufRead",
-  },
-
-  {
     "f-person/git-blame.nvim",
     event = "BufRead",
     config = function()
@@ -313,11 +305,6 @@ lvim.plugins = {
 
   {
     "tpope/vim-surround",
-
-    -- make sure to change the value of `timeoutlen` if it's not triggering correctly, see https://github.com/tpope/vim-surround/issues/117
-    -- setup = function()
-    --  vim.o.timeoutlen = 500
-    -- end
   },
 
   { "tpope/vim-repeat" },
@@ -336,6 +323,7 @@ lvim.plugins = {
       vim.defer_fn(function()
         require("copilot").setup {
           plugin_manager_path = get_runtime_dir() .. "/site/pack/packer",
+          copilot_node_command = vim.fn.expand("$HOME") .. "/.nvm/versions/node/v16.14.2/bin/node",
         }
       end, 100)
     end,
@@ -343,12 +331,16 @@ lvim.plugins = {
 
   { "zbirenbaum/copilot-cmp",
     after = { "copilot.lua", "nvim-cmp" },
+    config = function()
+      require("copilot_cmp").setup {
+        method = "getCompletionsCycling",
+      }
+    end
   },
 }
 
 lvim.builtin.cmp.formatting.source_names["copilot"] = "(Copilot)"
 table.insert(lvim.builtin.cmp.sources, 1, { name = "copilot" })
-
 lvim.builtin.treesitter.rainbow.enable = true
 vim.opt.wrap = true
 
