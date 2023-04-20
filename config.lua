@@ -7,12 +7,20 @@ a global executable or a path to
 an executable
 ]]
 -- THESE ARE EXAMPLE CONFIGS FEEL FREE TO CHANGE TO WHATEVER YOU WANT
+--
+-- vim options
+vim.opt.shiftwidth = 2
+vim.opt.tabstop = 2
+vim.opt.relativenumber = true
 
 -- general
-lvim.log.level = "warn"
-lvim.format_on_save = true
+lvim.log.level = "info"
+lvim.format_on_save = {
+  enabled = true,
+  timeout = 1000,
+}
 lvim.colorscheme = "tokyonight"
-lvim.builtin.breadcrumbs.active = true
+
 -- to disable icons and use a minimalist setup, uncomment the following
 -- lvim.use_icons = false
 
@@ -22,6 +30,7 @@ lvim.leader = "space"
 lvim.keys.normal_mode["<C-s>"] = ":w<cr>"
 -- Toggle last buffer
 lvim.keys.normal_mode["<C-e>"] = "<C-^>"
+
 -- unmap a default keymapping
 -- vim.keymap.del("n", "<C-Up>")
 -- override a default keymapping
@@ -65,24 +74,29 @@ lvim.builtin.terminal.active = true
 lvim.builtin.nvimtree.setup.view.side = "left"
 lvim.builtin.nvimtree.setup.renderer.icons.show.git = false
 
+-- Automatically install missing parsers when entering buffer
+lvim.builtin.treesitter.auto_install = true
+
 -- if you don't want all the parsers change this to a table of the ones you want
 lvim.builtin.treesitter.ensure_installed = {
   "bash",
   "c",
+  "html",
   "javascript",
   "json",
   "lua",
-  "python",
+  "markdown_inline",
   "typescript",
   "tsx",
   "css",
+  "regex",
+  "scss",
   "rust",
-  "java",
   "yaml",
 }
-
 lvim.builtin.treesitter.ignore_install = { "haskell" }
-lvim.builtin.treesitter.highlight.enabled = true
+lvim.builtin.treesitter.highlight.enable = true
+lvim.builtin.treesitter.rainbow.enable = true
 
 -- generic LSP settings
 
@@ -199,26 +213,25 @@ linters.setup {
 lvim.plugins = {
   {
     "phaazon/hop.nvim",
-    branch = "v2",
     event = "BufRead",
     config = function()
       require("hop").setup {
-        keys = 'nterasoihdfmul';
-        vim.api.nvim_set_keymap("", "s", "<cmd>HopChar2<cr>", { silent = true });
-        vim.api.nvim_set_keymap("", "S", "<cmd>HopWord<cr>", { silent = true });
-        vim.api.nvim_set_keymap("", "l", "<cmd>HopLine<cr>", { silent = true });
+        keys = 'nterasoihdfmul',
+        vim.api.nvim_set_keymap("", "s", "<cmd>HopChar2<cr>", { silent = true }),
+        vim.api.nvim_set_keymap("", "S", "<cmd>HopWord<cr>", { silent = true }),
+        vim.api.nvim_set_keymap("", "l", "<cmd>HopLine<cr>", { silent = true }),
         vim.api.nvim_set_keymap('', 'f',
           "<cmd>lua require'hop'.hint_char1({ direction = require'hop.hint'.HintDirection.AFTER_CURSOR, current_line_only = true })<cr>"
-          , {});
+          , {}),
         vim.api.nvim_set_keymap('', 'F',
           "<cmd>lua require'hop'.hint_char1({ direction = require'hop.hint'.HintDirection.BEFORE_CURSOR, current_line_only = true })<cr>"
-          , {});
+          , {}),
         vim.api.nvim_set_keymap('', 't',
           "<cmd>lua require'hop'.hint_char1({ direction = require'hop.hint'.HintDirection.AFTER_CURSOR, current_line_only = true, hint_offset = -1 })<cr>"
-          , {});
+          , {}),
         vim.api.nvim_set_keymap('', 'T',
           "<cmd>lua require'hop'.hint_char1({ direction = require'hop.hint'.HintDirection.BEFORE_CURSOR, current_line_only = true, hint_offset = 1 })<cr>"
-          , {});
+          , {}),
       }
     end
   },
@@ -239,12 +252,12 @@ lvim.plugins = {
     "rmagatti/goto-preview",
     config = function()
       require('goto-preview').setup {
-        width = 120; -- Width of the floating window
-        height = 25; -- Height of the floating window
-        default_mappings = false; -- Bind default mappings
-        debug = false; -- Print debug information
-        opacity = nil; -- 0-100 opacity level of the floating window where 100 is fully transparent.
-        post_open_hook = nil -- A function taking two arguments, a buffer and a window to be ran as a hook.
+        width = 120,              -- Width of the floating window
+        height = 25,              -- Height of the floating window
+        default_mappings = false, -- Bind default mappings
+        debug = false,            -- Print debug information
+        opacity = nil,            -- 0-100 opacity level of the floating window where 100 is fully transparent.
+        post_open_hook = nil      -- A function taking two arguments, a buffer and a window to be ran as a hook.
         -- You can use "default_mappings = true" setup option
         -- Or explicitly set keybindings
         -- vim.cmd("nnoremap gpd <cmd>lua require('goto-preview').goto_preview_definition()<CR>")
@@ -265,13 +278,7 @@ lvim.plugins = {
   {
     "ray-x/lsp_signature.nvim",
     event = "BufRead",
-    config = function() require "lsp_signature".on_attach({
-        bind = true,
-        handler_opts = {
-          border = "rounded"
-        }
-      })
-    end,
+    config = function() require "lsp_signature".on_attach() end,
   },
 
   {
@@ -317,26 +324,25 @@ lvim.plugins = {
     end,
   },
 
-  { "zbirenbaum/copilot.lua",
-    event = { "VimEnter" },
-    config = function()
-      vim.defer_fn(function()
-        require("copilot").setup {
-          plugin_manager_path = get_runtime_dir() .. "/site/pack/packer",
-          copilot_node_command = vim.fn.expand("$HOME") .. "/.nvm/versions/node/v16.14.2/bin/node",
-        }
-      end, 100)
-    end,
+  {
+    "mg979/vim-visual-multi",
+    branch = 'master',
   },
 
-  { "zbirenbaum/copilot-cmp",
-    after = { "copilot.lua", "nvim-cmp" },
-    config = function()
-      require("copilot_cmp").setup {
-        method = "getCompletionsCycling",
-      }
-    end
+  {
+    table.insert(lvim.plugins, {
+      "zbirenbaum/copilot-cmp",
+      event = "InsertEnter",
+      dependencies = { "zbirenbaum/copilot.lua" },
+      config = function()
+        vim.defer_fn(function()
+          require("copilot").setup()     -- https://github.com/zbirenbaum/copilot.lua/blob/master/README.md#setup-and-configuration
+          require("copilot_cmp").setup() -- https://github.com/zbirenbaum/copilot-cmp/blob/master/README.md#configuration
+        end, 100)
+      end,
+    }),
   },
+
 }
 
 lvim.builtin.cmp.formatting.source_names["copilot"] = "(Copilot)"
