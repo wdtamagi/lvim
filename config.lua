@@ -1,28 +1,10 @@
---[[
-
-
-Linters should be
-filled in as strings with either
-a global executable or a path to
-an executable
-]]
--- THESE ARE EXAMPLE CONFIGS FEEL FREE TO CHANGE TO WHATEVER YOU WANT
---
 -- vim options
 vim.opt.shiftwidth = 2
 vim.opt.tabstop = 2
-vim.opt.relativenumber = true
 
 -- general
-lvim.log.level = "info"
-lvim.format_on_save = {
-  enabled = true,
-  timeout = 1000,
-}
+lvim.format_on_save.enabled = true
 lvim.colorscheme = "tokyonight"
-
--- to disable icons and use a minimalist setup, uncomment the following
--- lvim.use_icons = false
 
 -- keymappings [view all the defaults by pressing <leader>Lk]
 lvim.leader = "space"
@@ -31,132 +13,146 @@ lvim.keys.normal_mode["<C-s>"] = ":w<cr>"
 -- Toggle last buffer
 lvim.keys.normal_mode["<C-e>"] = "<C-^>"
 
--- unmap a default keymapping
--- vim.keymap.del("n", "<C-Up>")
--- override a default keymapping
--- lvim.keys.normal_mode["<C-q>"] = ":q<cr>" -- or vim.keymap.set("n", "<C-q>", ":q<cr>" )
-
--- Change Telescope navigation to use j and k for navigation and n and p for history in both input and normal mode.
--- we use protected-mode (pcall) just in case the plugin wasn't loaded yet.
--- local _, actions = pcall(require, "telescope.actions")
--- lvim.builtin.telescope.defaults.mappings = {
---   -- for input mode
---   i = {
---     ["<C-j>"] = actions.move_selection_next,
---     ["<C-k>"] = actions.move_selection_previous,
---     ["<C-n>"] = actions.cycle_history_next,
---     ["<C-p>"] = actions.cycle_history_prev,
---   },
---   -- for normal mode
---   n = {
---     ["<C-j>"] = actions.move_selection_next,
---     ["<C-k>"] = actions.move_selection_previous,
---   },
--- }
-
--- Use which-key to add extra bindings with the leader-key prefix
--- lvim.builtin.which_key.mappings["P"] = { "<cmd>Telescope projects<CR>", "Projects" }
--- lvim.builtin.which_key.mappings["t"] = {
---   name = "+Trouble",
---   r = { "<cmd>Trouble lsp_references<cr>", "References" },
---   f = { "<cmd>Trouble lsp_definitions<cr>", "Definitions" },
---   d = { "<cmd>Trouble document_diagnostics<cr>", "Diagnostics" },
---   q = { "<cmd>Trouble quickfix<cr>", "QuickFix" },
---   l = { "<cmd>Trouble loclist<cr>", "LocationList" },
---   w = { "<cmd>Trouble workspace_diagnostics<cr>", "Wordspace Diagnostics" },
--- }
-
--- TODO: User Config for predefined plugins
--- After changing plugin config exit and reopen LunarVim, Run :PackerInstall :PackerCompile
-lvim.builtin.alpha.active = true
-lvim.builtin.alpha.mode = "dashboard"
-lvim.builtin.terminal.active = true
-lvim.builtin.nvimtree.setup.view.side = "left"
-lvim.builtin.nvimtree.setup.renderer.icons.show.git = false
-
--- Automatically install missing parsers when entering buffer
-lvim.builtin.treesitter.auto_install = true
-
 -- if you don't want all the parsers change this to a table of the ones you want
 lvim.builtin.treesitter.ensure_installed = {
+  "lua",
+  "rust",
+  "toml",
   "bash",
   "c",
   "html",
   "javascript",
   "json",
-  "lua",
   "markdown_inline",
   "typescript",
   "tsx",
   "css",
   "regex",
   "scss",
-  "rust",
   "yaml",
 }
-lvim.builtin.treesitter.ignore_install = { "haskell" }
-lvim.builtin.treesitter.highlight.enable = true
-lvim.builtin.treesitter.rainbow.enable = true
 
--- generic LSP settings
+-- RUST
+vim.list_extend(lvim.lsp.automatic_configuration.skipped_servers, { "rust_analyzer" })
 
--- ---@usage disable automatic installation of servers
--- lvim.lsp.automatic_servers_installation = false
+local mason_path = vim.fn.glob(vim.fn.stdpath "data" .. "/mason/")
 
--- ---configure a server manually. !!Requires `:LvimCacheReset` to take effect!!
--- ---see the full default list `:lua print(vim.inspect(lvim.lsp.automatic_configuration.skipped_servers))`
--- vim.list_extend(lvim.lsp.automatic_configuration.skipped_servers, { "pyright" })
--- local opts = {} -- check the lspconfig documentation for a list of all possible options
--- require("lvim.lsp.manager").setup("pyright", opts)
+local codelldb_path = mason_path .. "bin/codelldb"
+local liblldb_path = mason_path .. "packages/codelldb/extension/lldb/lib/liblldb"
+local this_os = vim.loop.os_uname().sysname
 
--- ---remove a server from the skipped list, e.g. eslint, or emmet_ls. !!Requires `:LvimCacheReset` to take effect!!
--- ---`:LvimInfo` lists which server(s) are skiipped for the current filetype
--- vim.tbl_map(function(server)
---   return server ~= "emmet_ls"
--- end, lvim.lsp.automatic_configuration.skipped_servers)
+-- The path in windows is different
+if this_os:find "Windows" then
+  codelldb_path = mason_path .. "packages\\codelldb\\extension\\adapter\\codelldb.exe"
+  liblldb_path = mason_path .. "packages\\codelldb\\extension\\lldb\\bin\\liblldb.dll"
+else
+  -- The liblldb extension is .so for linux and .dylib for macOS
+  liblldb_path = liblldb_path .. (this_os == "Linux" and ".so" or ".dylib")
+end
 
--- -- you can set a custom on_attach function that will be used for all the language servers
--- -- See <https://github.com/neovim/nvim-lspconfig#keybindings-and-completion>
--- lvim.lsp.on_attach_callback = function(client, bufnr)
---   local function buf_set_option(...)
---     vim.api.nvim_buf_set_option(bufnr, ...)
---   end
---   --Enable completion triggered by <c-x><c-o>
---   buf_set_option("omnifunc", "v:lua.vim.lsp.omnifunc")
--- end
+pcall(function()
+  require("rust-tools").setup {
+    tools = {
+      executor = require("rust-tools/executors").termopen, -- can be quickfix or termopen
+      reload_workspace_from_cargo_toml = true,
+      runnables = {
+        use_telescope = true,
+      },
+      inlay_hints = {
+        auto = true,
+        only_current_line = false,
+        show_parameter_hints = false,
+        parameter_hints_prefix = "<-",
+        other_hints_prefix = "=>",
+        max_len_align = false,
+        max_len_align_padding = 1,
+        right_align = false,
+        right_align_padding = 7,
+        highlight = "Comment",
+      },
+      hover_actions = {
+        border = "rounded",
+      },
+      on_initialized = function()
+        vim.api.nvim_create_autocmd({ "BufWritePost", "BufEnter", "CursorHold", "InsertLeave" }, {
+          pattern = { "*.rs" },
+          callback = function()
+            local _, _ = pcall(vim.lsp.codelens.refresh)
+          end,
+        })
+      end,
+    },
+    dap = {
+      -- adapter= codelldb_adapter,
+      adapter = require("rust-tools.dap").get_codelldb_adapter(codelldb_path, liblldb_path),
+    },
+    server = {
+      on_attach = function(client, bufnr)
+        require("lvim.lsp").common_on_attach(client, bufnr)
+        local rt = require "rust-tools"
+        vim.keymap.set("n", "K", rt.hover_actions.hover_actions, { buffer = bufnr })
+      end,
 
--- -- set a formatter, this will override the language server formatting capabilities (if it exists)
--- local formatters = require "lvim.lsp.null-ls.formatters"
--- formatters.setup {
---   { command = "black", filetypes = { "python" } },
---   { command = "isort", filetypes = { "python" } },
---   {
---     -- each formatter accepts a list of options identical to https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#Configuration
---     command = "prettier",
---     ---@usage arguments to pass to the formatter
---     -- these cannot contain whitespaces, options such as `--line-width 80` become either `{'--line-width', '80'}` or `{'--line-width=80'}`
---     extra_args = { "--print-with", "100" },
---     ---@usage specify which filetypes to enable. By default a providers will attach to all the filetypes it supports.
---     filetypes = { "typescript", "typescriptreact" },
---   },
--- }
+      capabilities = require("lvim.lsp").common_capabilities(),
+      settings = {
+        ["rust-analyzer"] = {
+          lens = {
+            enable = true,
+          },
+          checkOnSave = {
+            enable = true,
+            command = "clippy",
+          },
+        },
+      },
+    },
+  }
+end)
+
+lvim.builtin.dap.on_config_done = function(dap)
+  dap.adapters.codelldb = require("rust-tools.dap").get_codelldb_adapter(codelldb_path, liblldb_path)
+  dap.configurations.rust = {
+    {
+      name = "Launch file",
+      type = "codelldb",
+      request = "launch",
+      program = function()
+        return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+      end,
+      cwd = "${workspaceFolder}",
+      stopOnEntry = false,
+    },
+  }
+end
+
+vim.api.nvim_set_keymap("n", "<m-d>", "<cmd>RustOpenExternalDocs<Cr>", { noremap = true, silent = true })
+
+lvim.builtin.which_key.mappings["C"] = {
+  name = "Rust",
+  r = { "<cmd>RustRunnables<Cr>", "Runnables" },
+  t = { "<cmd>lua _CARGO_TEST()<cr>", "Cargo Test" },
+  m = { "<cmd>RustExpandMacro<Cr>", "Expand Macro" },
+  c = { "<cmd>RustOpenCargo<Cr>", "Open Cargo" },
+  p = { "<cmd>RustParentModule<Cr>", "Parent Module" },
+  d = { "<cmd>RustDebuggables<Cr>", "Debuggables" },
+  v = { "<cmd>RustViewCrateGraph<Cr>", "View Crate Graph" },
+  R = {
+    "<cmd>lua require('rust-tools/workspace_refresh')._reload_workspace_from_cargo_toml()<Cr>",
+    "Reload Workspace",
+  },
+  o = { "<cmd>RustOpenExternalDocs<Cr>", "Open External Docs" },
+  y = { "<cmd>lua require'crates'.open_repository()<cr>", "[crates] open repository" },
+  P = { "<cmd>lua require'crates'.show_popup()<cr>", "[crates] show popup" },
+  i = { "<cmd>lua require'crates'.show_crate_popup()<cr>", "[crates] show info" },
+  f = { "<cmd>lua require'crates'.show_features_popup()<cr>", "[crates] show features" },
+  D = { "<cmd>lua require'crates'.show_dependencies_popup()<cr>", "[crates] show dependencies" },
+}
 
 -- Formatter
 local formatters = require "lvim.lsp.null-ls.formatters"
 formatters.setup {
   {
-    exe = "prettierd",
-    filetypes = {
-      "javascriptreact",
-      "javascript",
-      "typescriptreact",
-      "typescript",
-      "json",
-      "markdown",
-    },
-  },
-  {
-    exe = "eslint_d",
+    name = "eslint_d",
     filetypes = {
       "javascriptreact",
       "javascript",
@@ -172,7 +168,7 @@ formatters.setup {
 local linters = require "lvim.lsp.null-ls.linters"
 linters.setup {
   {
-    exe = "eslint_d",
+    name = "eslint_d",
     filetypes = {
       "javascriptreact",
       "javascript",
@@ -184,33 +180,34 @@ linters.setup {
   },
 }
 
--- -- set additional linters
--- local linters = require "lvim.lsp.null-ls.linters"
--- linters.setup {
---   { command = "flake8", filetypes = { "python" } },
---   {
---     -- each linter accepts a list of options identical to https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#Configuration
---     command = "shellcheck",
---     ---@usage arguments to pass to the formatter
---     -- these cannot contain whitespaces, options such as `--line-width 80` become either `{'--line-width', '80'}` or `{'--line-width=80'}`
---     extra_args = { "--severity", "warning" },
---   },
---   {
---     command = "codespell",
---     ---@usage specify which filetypes to enable. By default a providers will attach to all the filetypes it supports.
---     filetypes = { "javascript", "python" },
---   },
--- }
 
--- Additional Plugins
--- lvim.plugins = {
---     {"folke/tokyonight.nvim"},
---     {
---       "folke/trouble.nvim",
---       cmd = "TroubleToggle",
---     },
--- }
 lvim.plugins = {
+  --RUS PLUGINS
+  "simrat39/rust-tools.nvim",
+  {
+    "saecki/crates.nvim",
+    version = "v0.3.0",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+      require("crates").setup {
+        null_ls = {
+          enabled = true,
+          name = "crates.nvim",
+        },
+        popup = {
+          border = "rounded",
+        },
+      }
+    end,
+  },
+  {
+    "j-hui/fidget.nvim",
+    config = function()
+      require("fidget").setup()
+    end,
+  },
+
+  --GERERAL
   {
     "phaazon/hop.nvim",
     event = "BufRead",
@@ -235,52 +232,11 @@ lvim.plugins = {
       }
     end
   },
-
-  {
-    "windwp/nvim-ts-autotag",
-    event = "InsertEnter",
-    config = function()
-      require("nvim-ts-autotag").setup()
-    end,
-  },
-
-  {
-    "p00f/nvim-ts-rainbow",
-  },
-
-  {
-    "rmagatti/goto-preview",
-    config = function()
-      require('goto-preview').setup {
-        width = 120,              -- Width of the floating window
-        height = 25,              -- Height of the floating window
-        default_mappings = false, -- Bind default mappings
-        debug = false,            -- Print debug information
-        opacity = nil,            -- 0-100 opacity level of the floating window where 100 is fully transparent.
-        post_open_hook = nil      -- A function taking two arguments, a buffer and a window to be ran as a hook.
-        -- You can use "default_mappings = true" setup option
-        -- Or explicitly set keybindings
-        -- vim.cmd("nnoremap gpd <cmd>lua require('goto-preview').goto_preview_definition()<CR>")
-        -- vim.cmd("nnoremap gpi <cmd>lua require('goto-preview').goto_preview_implementation()<CR>")
-        -- vim.cmd("nnoremap gP <cmd>lua require('goto-preview').close_all_win()<CR>")
-      }
-    end
-  },
-
-  {
-    "folke/todo-comments.nvim",
-    event = "BufRead",
-    config = function()
-      require("todo-comments").setup()
-    end,
-  },
-
   {
     "ray-x/lsp_signature.nvim",
     event = "BufRead",
     config = function() require "lsp_signature".on_attach() end,
   },
-
   {
     "tpope/vim-fugitive",
     cmd = {
@@ -300,30 +256,6 @@ lvim.plugins = {
     },
     ft = { "fugitive" }
   },
-
-  {
-    "f-person/git-blame.nvim",
-    event = "BufRead",
-    config = function()
-      vim.cmd "highlight default link gitblame SpecialComment"
-      vim.g.gitblame_enabled = 0
-    end,
-  },
-
-  {
-    "tpope/vim-surround",
-  },
-
-  { "tpope/vim-repeat" },
-
-  {
-    "andymass/vim-matchup",
-    event = "CursorMoved",
-    config = function()
-      vim.g.matchup_matchparen_offscreen = { method = "popup" }
-    end,
-  },
-
   {
     "mg979/vim-visual-multi",
     branch = 'master',
@@ -335,17 +267,55 @@ lvim.plugins = {
     dependencies = { "zbirenbaum/copilot.lua" },
     config = function()
       vim.defer_fn(function()
-        require("copilot").setup()     -- https://github.com/zbirenbaum/copilot.lua/blob/master/README.md#setup-and-configuration
-        require("copilot_cmp").setup() -- https://github.com/zbirenbaum/copilot-cmp/blob/master/README.md#configuration
+        require("copilot").setup({
+          panel = {
+            enabled = false,
+            auto_refresh = false,
+            keymap = {
+              jump_prev = "[[",
+              jump_next = "]]",
+              accept = "<CR>",
+              refresh = "gr",
+              open = "<M-CR>"
+            },
+            layout = {
+              position = "bottom", -- | top | left | right
+              ratio = 0.4
+            },
+          },
+          suggestion = {
+            enabled = false,
+            auto_trigger = true,
+            debounce = 75,
+            keymap = {
+              accept = "<M-l>",
+              accept_word = false,
+              accept_line = false,
+              next = "<M-]>",
+              prev = "<M-[>",
+              dismiss = "<C-]>",
+            },
+          },
+          filetypes = {
+            yaml = false,
+            markdown = false,
+            help = false,
+            gitcommit = false,
+            gitrebase = false,
+            hgcommit = false,
+            svn = false,
+            cvs = false,
+            ["."] = false,
+          },
+          copilot_node_command = 'node', -- Node.js version must be > 16.x
+          server_opts_overrides = {},
+        })                               -- https://github.com/zbirenbaum/copilot.lua/blob/master/README.md#setup-and-configuration
+        require("copilot_cmp").setup()   -- https://github.com/zbirenbaum/copilot-cmp/blob/master/README.md#configuration
       end, 100)
     end,
   })
 }
 
-lvim.builtin.cmp.formatting.source_names["copilot"] = "(Copilot)"
-table.insert(lvim.builtin.cmp.sources, 1, { name = "copilot" })
-lvim.builtin.treesitter.rainbow.enable = true
-vim.opt.wrap = true
 
 -- Fugitive keybindings
 lvim.builtin.which_key.mappings["g"] = {
@@ -357,17 +327,3 @@ lvim.builtin.which_key.mappings["g"] = {
   t = { "<cmd>:diffget //2 | diffupdate<cr>", "Diff get left" },
   n = { "<cmd>:diffget //3 | diffupdate<cr>", "Diff get right" },
 }
-
--- Autocommands (https://neovim.io/doc/user/autocmd.html)
--- vim.api.nvim_create_autocmd("BufEnter", {
---   pattern = { "*.json", "*.jsonc" },
---   -- enable wrap mode for json files only
---   command = "setlocal wrap",
--- })
--- vim.api.nvim_create_autocmd("FileType", {
---   pattern = "zsh",
---   callback = function()
---     -- let treesitter use bash highlight for zsh files as well
---     require("nvim-treesitter.highlight").attach(0, "bash")
---   end,
--- })
