@@ -32,7 +32,9 @@ lvim.builtin.treesitter.ensure_installed = {
   "yaml",
 }
 
+--
 -- RUST
+--
 vim.list_extend(lvim.lsp.automatic_configuration.skipped_servers, { "rust_analyzer" })
 
 local mason_path = vim.fn.glob(vim.fn.stdpath "data" .. "/mason/")
@@ -117,7 +119,7 @@ lvim.builtin.dap.on_config_done = function(dap)
       type = "codelldb",
       request = "launch",
       program = function()
-        return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+        return vim.fn.input("Path to executable: " .. vim.fn.getcwd() .. "/" .. "file")
       end,
       cwd = "${workspaceFolder}",
       stopOnEntry = false,
@@ -148,7 +150,9 @@ lvim.builtin.which_key.mappings["C"] = {
   D = { "<cmd>lua require'crates'.show_dependencies_popup()<cr>", "[crates] show dependencies" },
 }
 
+--
 -- Formatter
+--
 local formatters = require "lvim.lsp.null-ls.formatters"
 formatters.setup {
   {
@@ -164,7 +168,9 @@ formatters.setup {
   },
 }
 
+--
 -- Linter
+--
 local linters = require "lvim.lsp.null-ls.linters"
 linters.setup {
   {
@@ -182,7 +188,9 @@ linters.setup {
 
 
 lvim.plugins = {
-  --RUS PLUGINS
+  --
+  -- RUST Plugins
+  --
   "simrat39/rust-tools.nvim",
   {
     "saecki/crates.nvim",
@@ -207,7 +215,9 @@ lvim.plugins = {
     end,
   },
 
-  --GERERAL
+  --
+  -- General
+  --
   {
     "phaazon/hop.nvim",
     event = "BufRead",
@@ -260,62 +270,57 @@ lvim.plugins = {
     "mg979/vim-visual-multi",
     branch = 'master',
   },
-
-  table.insert(lvim.plugins, {
-    "zbirenbaum/copilot-cmp",
-    event = "InsertEnter",
-    dependencies = { "zbirenbaum/copilot.lua" },
+  {
+    "windwp/nvim-ts-autotag",
     config = function()
-      vim.defer_fn(function()
-        require("copilot").setup({
-          panel = {
-            enabled = false,
-            auto_refresh = false,
-            keymap = {
-              jump_prev = "[[",
-              jump_next = "]]",
-              accept = "<CR>",
-              refresh = "gr",
-              open = "<M-CR>"
-            },
-            layout = {
-              position = "bottom", -- | top | left | right
-              ratio = 0.4
-            },
-          },
-          suggestion = {
-            enabled = false,
-            auto_trigger = true,
-            debounce = 75,
-            keymap = {
-              accept = "<M-l>",
-              accept_word = false,
-              accept_line = false,
-              next = "<M-]>",
-              prev = "<M-[>",
-              dismiss = "<C-]>",
-            },
-          },
-          filetypes = {
-            yaml = false,
-            markdown = false,
-            help = false,
-            gitcommit = false,
-            gitrebase = false,
-            hgcommit = false,
-            svn = false,
-            cvs = false,
-            ["."] = false,
-          },
-          copilot_node_command = 'node', -- Node.js version must be > 16.x
-          server_opts_overrides = {},
-        })                               -- https://github.com/zbirenbaum/copilot.lua/blob/master/README.md#setup-and-configuration
-        require("copilot_cmp").setup()   -- https://github.com/zbirenbaum/copilot-cmp/blob/master/README.md#configuration
-      end, 100)
+      require("nvim-ts-autotag").setup()
     end,
-  })
+  },
+  {
+    "mrjones2014/nvim-ts-rainbow",
+  },
+  {
+    "andymass/vim-matchup",
+    event = "CursorMoved",
+    config = function()
+      vim.g.matchup_matchparen_offscreen = { method = "popup" }
+    end,
+  },
+  {
+    "f-person/git-blame.nvim",
+    event = "BufRead",
+    config = function()
+      vim.cmd "highlight default link gitblame SpecialComment"
+      require("gitblame").setup { enabled = false }
+    end,
+  },
+  {
+    "tpope/vim-surround",
+
+    -- make sure to change the value of `timeoutlen` if it's not triggering correctly, see https://github.com/tpope/vim-surround/issues/117
+    -- setup = function()
+    --  vim.o.timeoutlen = 500
+    -- end
+  },
 }
 
+--
+-- Copilot
+--
+table.insert(lvim.plugins, {
+  "zbirenbaum/copilot-cmp",
+  event = "InsertEnter",
+  dependencies = { "zbirenbaum/copilot.lua" },
+  config = function()
+    vim.defer_fn(function()
+      require("copilot").setup()     -- https://github.com/zbirenbaum/copilot.lua/blob/master/README.md#setup-and-configuration
+      require("copilot_cmp").setup() -- https://github.com/zbirenbaum/copilot-cmp/blob/master/README.md#configuration
+    end, 100)
+  end,
+})
+
+-- enable treesitter integration
+lvim.builtin.treesitter.matchup.enable = true
 
 -- Fugitive keybindings
 lvim.builtin.which_key.mappings["g"] = {
